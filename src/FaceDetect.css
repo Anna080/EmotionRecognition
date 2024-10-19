@@ -1,0 +1,17 @@
+.bounding-box {
+    position: absolute;
+    box-shadow: 0 0 0 3px #149df2 inset;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    cursor: pointer;
+  }
+  
+  .emotion-label {
+    position: absolute;
+    background-color: rgba(255, 255, 255, 0.5);
+    color: #000;
+    font-size: 1em;
+    padding: 2px 6px;
+    border-radius: 3px;
+  }  
