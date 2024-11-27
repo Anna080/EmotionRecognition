@@ -23,8 +23,10 @@
 }
 
 input {
-  color: white;
-  outline: none;
+  width: 100%; /* Utilise toute la largeur disponible */
+  max-width: 100%; /* Assure que l'input ne déborde pas */
+  padding: 0.5rem;
+  box-sizing: border-box;
 }
 
 .bgcol {
@@ -40,10 +42,18 @@ input {
 }
 
 .cssSignin {
-  border: chartreuse;
-  border-width: 2px;
+  border: 2px solid chartreuse;
   background: #00bfa5;
+  padding: 1.5rem;
+  width: auto;
+  min-width: 250px; /* Largeur minimale pour assurer une bonne lisibilité */
+  box-sizing: border-box; /* Inclus le padding dans la largeur */
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
+
 
 .center {
   display: flex;
@@ -113,3 +123,21 @@ input {
   background-color:#3333;
   z-index: -1;
 } */
+
+.App {
+  text-align: center;
+}
+
+.center {
+  display: flex;
+  justify-content: center
+}
+
+.particles {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: 0;
+  z-index: -1
+}

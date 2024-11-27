@@ -3,113 +3,141 @@ import React, { useRef, useEffect, useState } from "react";
 const WebcamCapture = ({ callEmotionApi }) => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
-  const [emotion, setEmotion] = useState(''); // État pour l'émotion actuelle
-  const [faceBox, setFaceBox] = useState(null); // État pour stocker les coordonnées du visage
-  const [isRealTime, setIsRealTime] = useState(true); // Pour activer/désactiver la prédiction en temps réel
+  const [emotion, setEmotion] = useState(""); // Émotion détectée
+  const [faceBox, setFaceBox] = useState(null); // Coordonnées du visage
+  const [isRealTime, setIsRealTime] = useState(true); // Contrôle temps réel
+  const animationFrameRef = useRef(null); // Pour requestAnimationFrame
 
   useEffect(() => {
-    // Accéder à la webcam
+    // Accès à la webcam avec une résolution réduite
     navigator.mediaDevices
-      .getUserMedia({ video: true })
+      .getUserMedia({ video: { width: 640, height: 480 } })
       .then((stream) => {
-        videoRef.current.srcObject = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
       })
       .catch((err) => {
         console.error("Erreur lors de l'accès à la webcam :", err);
       });
 
-    // Démarrer la prédiction en temps réel
-    const intervalId = setInterval(() => {
-      if (isRealTime) {
+    let predictionInterval;
+    if (isRealTime) {
+      predictionInterval = setInterval(() => {
         captureAndPredict();
-      }
-    }, 500); // Capturer et prédire toutes les 500 ms
+      }, 500); // Ajuster à une fréquence raisonnable
+    }
 
-    // Nettoyage de l'intervalle à la fin du composant
     return () => {
-      clearInterval(intervalId);
+      if (predictionInterval) clearInterval(predictionInterval);
+
+      // Arrêter les flux de la webcam
+      if (videoRef.current && videoRef.current.srcObject) {
+        const tracks = videoRef.current.srcObject.getTracks();
+        tracks.forEach((track) => track.stop());
+      }
+
+      // Annuler l'animation
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
     };
   }, [isRealTime]);
 
-  // Fonction pour capturer l'image et prédire
+  // Fonction pour capturer une image et effectuer une prédiction
   const captureAndPredict = () => {
     const canvas = canvasRef.current;
     const video = videoRef.current;
 
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+    // S'assurer que le canvas et la vidéo sont valides
+    if (!canvas || !video) return;
+
+    canvas.width = 640;
+    canvas.height = 480;
 
     const ctx = canvas.getContext("2d");
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    // Obtenir les données de l'image capturée en base64
+    // Convertir en base64
     const imageDataURL = canvas.toDataURL("image/jpeg");
-    const base64Image = imageDataURL.split(",")[1]; // Extraire l'image encodée en base64
+    const base64Image = imageDataURL.split(",")[1];
 
-    // Envoyer l'image encodée en base64 à l'API Flask pour la prédiction
+    // Appeler l'API pour prédire
     callEmotionApi(base64Image, (result) => {
-      if (result.length > 0) {
-        const face = result[0]; // On prend uniquement le premier visage
-        setFaceBox(face.box); // Mettre à jour la position du cadre du visage
-        setEmotion(face.emotion); // Mettre à jour l'émotion détectée
+      if (result && result.length > 0) {
+        const face = result[0];
+        setFaceBox(face.box); // Mettre à jour les coordonnées du cadre
+        setEmotion(face.emotion); // Mettre à jour l'émotion
+      } else {
+        setFaceBox(null); // Aucun visage détecté
+        setEmotion("");
       }
     });
   };
 
-  // Fonction pour capturer une image manuellement
-  const captureImage = () => {
-    setIsRealTime(false); // Désactiver la prédiction en temps réel pendant la capture manuelle
-    captureAndPredict();  // Capturer et prédire manuellement
-    setTimeout(() => setIsRealTime(true), 1000); // Reprendre la prédiction en temps réel après 1 seconde
+  // Utiliser requestAnimationFrame pour dessiner le cadre
+  const drawOverlay = () => {
+    const canvas = canvasRef.current;
+    const ctx = canvas ? canvas.getContext("2d") : null;
+
+    if (ctx) {
+      // Effacer le canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (faceBox) {
+        // Dessiner le cadre autour du visage
+        ctx.strokeStyle = "#00FF00";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(faceBox.x, faceBox.y, faceBox.w, faceBox.h);
+
+        // Dessiner le texte de l'émotion
+        ctx.font = "16px Arial";
+        ctx.fillStyle = "#00FF00";
+        ctx.fillText(emotion, faceBox.x, faceBox.y - 10);
+      }
+    }
+
+    // Boucle d'animation
+    animationFrameRef.current = requestAnimationFrame(drawOverlay);
   };
+
+  useEffect(() => {
+    animationFrameRef.current = requestAnimationFrame(drawOverlay);
+
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [faceBox, emotion]);
 
   return (
     <div style={{ position: "relative", width: "640px", height: "480px" }}>
-      <h2>Détection d'Émotions via Webcam (Temps réel)</h2>
-      {/* La vidéo de la webcam */}
+      <h2>Détection d'Émotions via Webcam</h2>
+      {/* Vidéo webcam */}
       <video
         ref={videoRef}
         autoPlay
         muted
-        style={{ width: "640px", height: "480px", position: "absolute", top: 0, left: 0 }}
+        style={{
+          width: "640px",
+          height: "480px",
+          position: "absolute",
+          top: 0,
+          left: 0,
+        }}
       />
-      {/* Le canvas pour dessiner le cadre et l'émotion */}
+      {/* Canvas pour overlay */}
       <canvas
         ref={canvasRef}
-        style={{ position: "absolute", top: 0, left: 0, width: "640px", height: "480px" }}
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "640px",
+          height: "480px",
+        }}
       />
-      {/* Afficher l'émotion détectée et le cadre autour du visage */}
-      {faceBox && (
-        <div
-          style={{
-            position: "absolute",
-            top: faceBox.y,
-            left: faceBox.x,
-            width: faceBox.w,
-            height: faceBox.h,
-            border: "2px solid #00FF00",
-            pointerEvents: "none",
-          }}
-        >
-          {/* Le texte de l'émotion est ajouté sous le cadre */}
-          <span
-            style={{
-              color: "#00FF00",
-              fontSize: "18px",
-              backgroundColor: "rgba(0, 0, 0, 0.5)",
-              padding: "2px",
-              position: "absolute",
-              top: "-25px",
-              left: "0",
-            }}
-          >
-            {emotion}
-          </span>
-        </div>
-      )}
-      <button onClick={captureImage} style={{ marginTop: "10px" }}>
-        Capturer et Prédire
-      </button>
     </div>
   );
 };

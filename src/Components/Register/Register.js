@@ -13,7 +13,6 @@ class Register extends React.Component {
     };
   }
 
-  // Fonction pour valider l'email
   validateEmail = (email) => {
     return email.includes("@gmail.com") || email.includes("@notse.com");
   };
@@ -21,13 +20,11 @@ class Register extends React.Component {
   onEmailChange = (event) => {
     const email = event.target.value;
     const isValid = this.validateEmail(email);
-
     this.setState({ email, isValid });
 
     if (!isValid) {
       this.setState({
-        errorMessage:
-          "Only @gmail.com or @notse.com emails are allowed.",
+        errorMessage: "Only @gmail.com or @notse.com emails are allowed.",
       });
     } else {
       this.setState({ errorMessage: "" });
@@ -43,7 +40,7 @@ class Register extends React.Component {
   };
 
   onSubmitChange = (event) => {
-    event.preventDefault(); // Empêche le rechargement de la page
+    event.preventDefault();
 
     const { email, password, name, isValid } = this.state;
 
@@ -70,7 +67,7 @@ class Register extends React.Component {
         .then((data) => {
           if (data.id) {
             this.props.loadUser(data);
-            this.props.homeScreen("home");
+            this.props.onRouteChange("home"); // Use onRouteChange to navigate
           }
         })
         .catch((error) => {
@@ -92,21 +89,18 @@ class Register extends React.Component {
   };
 
   render() {
-    const { homeScreen } = this.props;
     const { errorMessage } = this.state;
+    const { onRouteChange } = this.props; // Extract onRouteChange from props
 
     return (
       <div className="container">
-        <article className="white mv4 w-100 w-50-m w-25-l mw5 center shadow-5 cssSignin ">
+        <article className="white mv4 w-100 w-50-m w-25-l mw5 center shadow-5 cssSignin">
           <main className="pa4 black-80">
-            <div className="measure ">
+            <div className="measure">
               <fieldset id="sign_up" className="ba b--transparent ph0 mh0">
                 <legend className="f2 white fw6 ph0 mh0">Register</legend>
                 <div className="mt3">
-                  <label
-                    className="db white fw6 lh-copy f6"
-                    htmlFor="name"
-                  >
+                  <label className="db white fw6 lh-copy f6" htmlFor="name">
                     Name
                   </label>
                   <input
@@ -136,10 +130,7 @@ class Register extends React.Component {
                   {errorMessage && <p className="red">{errorMessage}</p>}
                 </div>
                 <div className="mv3">
-                  <label
-                    className="db white fw6 lh-copy f6"
-                    htmlFor="password"
-                  >
+                  <label className="db white fw6 lh-copy f6" htmlFor="password">
                     Password
                   </label>
                   <input
@@ -159,6 +150,14 @@ class Register extends React.Component {
                   value="Register"
                   onClick={this.onSubmitChange}
                 />
+              </div>
+              <div className="lh-copy mt3">
+                <p
+                  onClick={() => onRouteChange("signin")}
+                  className="f6 white link dim black db pointer"
+                >
+                  Sign In
+                </p>
               </div>
             </div>
           </main>
