@@ -30,7 +30,7 @@ class SignIn extends React.Component {
   onSubmitSignIn = (event) => {
     event.preventDefault();
 
-    fetch("http://3.232.24.124/signin", {
+    fetch("/api/signin", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
