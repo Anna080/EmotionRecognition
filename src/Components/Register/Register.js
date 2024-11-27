@@ -45,7 +45,7 @@ class Register extends React.Component {
     const { email, password, name, isValid } = this.state;
 
     if (isValid) {
-      fetch("/register", {
+      fetch("http://3.232.24.124/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
