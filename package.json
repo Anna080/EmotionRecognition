@@ -36,7 +36,7 @@
     "predeploy": "npm run build",
     "deploy": "gh-pages -d build",
     "start": "NODE_OPTIONS=--trace-deprecation react-scripts start",
-    "build": "react-scripts build",
+    "build": "npm install --legacy-peer-deps && react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
