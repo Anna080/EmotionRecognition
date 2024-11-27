@@ -4,6 +4,17 @@
         "source": "/api/(.*)",
         "destination": "http://3.232.24.124:80/$1"
       }
+    ],
+    "headers": [
+      {
+        "source": "/api/(.*)",
+        "headers": [
+          {
+            "key": "Access-Control-Allow-Origin",
+            "value": "*"
+          }
+        ]
+      }
     ]
   }
   

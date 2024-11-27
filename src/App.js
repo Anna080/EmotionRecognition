@@ -343,7 +343,7 @@ class App extends Component {
   };
 
   callEmotionApi = (base64data, setFaceData) => {
-    fetch("http://3.232.24.124/predict", {
+    fetch("/api/predict", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
